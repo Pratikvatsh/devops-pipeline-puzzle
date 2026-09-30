@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0D1628">
+  <meta name="description" content="Arrange the DevOps pipeline and pass a quick DevOps quiz. A mini-game for students.">
+  <title>DevOps Pipeline Puzzle</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%9A%80%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;600&family=Sora:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to the game</a>
+
+  <!-- Heads-up display: visible during the two missions -->
+  <header class="hud" id="hud" hidden>
+    <div class="hud-inner">
+      <div class="hud-mission">
+        <span class="hud-step" id="hud-step">Mission 1 of 2</span>
+        <span class="hud-title" id="hud-title">Build the pipeline</span>
+      </div>
+      <div class="score-badge" aria-live="polite" aria-atomic="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.8 5.7 6.3.9-4.6 4.4 1.1 6.2L12 17l-5.6 3 1.1-6.2L2.9 9.4l6.3-.9z"/></svg>
+        <span><span id="score-value">0</span> pts</span>
+      </div>
+    </div>
+    <div class="hud-rail" id="hud-rail" aria-hidden="true"></div>
+  </header>
+
+  <main id="main" class="app">
+
+    <!-- Restoring a game after refresh -->
+    <section class="screen screen-loading" data-screen="loading" hidden>
+      <div class="spinner" aria-hidden="true"></div>
+      <p role="status">Restoring your game…</p>
+    </section>
+
+    <!-- 1. Start -->
+    <section class="screen screen-start" data-screen="start" aria-labelledby="start-title" hidden>
+      <div class="hero">
+        <h1 class="hero-title" id="start-title" tabindex="-1">
+          <span>DevOps</span><span>Pipeline</span><span>Puzzle</span>
+        </h1>
+        <p class="hero-sub">Build it. Test it. Deploy it. Monitor it.</p>
+        <div class="hero-rail" id="hero-rail" aria-hidden="true"></div>
+        <p class="hero-desc">Arrange the DevOps pipeline correctly and prove your knowledge through a quick interactive quiz.</p>
+      </div>
+
+      <form class="panel start-form" id="start-form" novalidate>
+        <label class="field-label" for="player-name">Your name</label>
+        <input class="text-input" id="player-name" name="playerName" type="text" maxlength="40"
+               autocomplete="name" autocapitalize="words" spellcheck="false" placeholder="e.g. Aisha Khan"
+               aria-describedby="name-help name-error" required>
+        <p class="field-help" id="name-help">Shown on your result card and the leaderboard.</p>
+        <p class="field-error" id="name-error" role="alert" hidden></p>
+        <button class="btn btn-primary btn-block" type="submit" id="start-btn">Start game</button>
+        <p class="terminal-line" aria-label="6 pipeline stages plus 6 quiz questions">
+          <span class="prompt" aria-hidden="true">$</span>
+          <span aria-hidden="true">play --stages 6 --questions 6</span>
+        </p>
+      </form>
+
+      <button class="btn btn-link leaderboard-link" type="button" id="start-leaderboard-btn">View leaderboard</button>
+    </section>
+
+    <!-- 2. Instructions -->
+    <section class="screen screen-instructions" data-screen="instructions" aria-labelledby="instructions-title" hidden>
+      <div class="panel">
+        <h2 class="screen-title" id="instructions-title" tabindex="-1">Your mission</h2>
+        <p class="screen-lead">Hi <span id="instructions-name"></span>, here is how it works.</p>
+        <ol class="mission-steps">
+          <li><strong>Arrange</strong> the six DevOps stages in the correct order.</li>
+          <li><strong>Submit</strong> your pipeline. Getting it right first time earns the most points.</li>
+          <li><strong>Answer</strong> six quick DevOps questions, one at a time.</li>
+          <li><strong>Ship it</strong> and see your final score.</li>
+        </ol>
+        <dl class="points-grid">
+          <div><dt>Pipeline</dt><dd>up to 20</dd></div>
+          <div><dt>Quiz</dt><dd>10 per answer</dd></div>
+          <div><dt>Total</dt><dd>80 points</dd></div>
+        </dl>
+        <button class="btn btn-primary btn-block" type="button" id="start-mission-btn">Start mission</button>
+      </div>
+    </section>
+
+    <!-- 3. Pipeline puzzle -->
+    <section class="screen screen-pipeline" data-screen="pipeline" aria-labelledby="pipeline-title" hidden>
+      <div class="screen-head">
+        <h2 class="screen-title" id="pipeline-title" tabindex="-1">Build the pipeline</h2>
+        <p class="screen-lead">Arrange the stages from source code to monitoring.</p>
+        <p class="instruction-chip" id="pipeline-instruction">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 16l-4-4 4-4M17 8l4 4-4 4M3 12h18"/></svg>
+          <span>Tap two cards to swap them.</span>
+        </p>
+      </div>
+
+      <ol class="pipeline-list" id="pipeline-list" aria-label="Pipeline stages in your current order"></ol>
+
+      <div class="feedback" id="pipeline-feedback" role="status" aria-live="polite" hidden></div>
+      <p class="attempt-info" id="attempt-info"></p>
+
+      <div class="actions actions-split" id="pipeline-actions">
+        <button class="btn btn-secondary" type="button" id="reset-btn">Reset order</button>
+        <button class="btn btn-primary" type="button" id="submit-pipeline-btn">Submit pipeline</button>
+      </div>
+      <div class="actions" id="to-quiz-actions" hidden>
+        <button class="btn btn-primary btn-block" type="button" id="to-quiz-btn">Start the quiz</button>
+      </div>
+      <p class="sr-only" id="swap-announcer" aria-live="polite"></p>
+    </section>
+
+    <!-- 4. Quiz -->
+    <section class="screen screen-quiz" data-screen="quiz" aria-labelledby="quiz-title" hidden>
+      <div class="screen-head">
+        <h2 class="screen-title" id="quiz-title" tabindex="-1">DevOps knowledge check</h2>
+        <div class="quiz-progress">
+          <p class="quiz-count" id="quiz-count">Question 1 of 6</p>
+          <div class="progress" id="quiz-progressbar" role="progressbar" aria-label="Quiz progress"
+               aria-valuemin="0" aria-valuemax="6" aria-valuenow="0">
+            <div class="progress-fill" id="quiz-progress-fill"></div>
+          </div>
+        </div>
+      </div>
+
+      <article class="panel question-card" id="question-card" aria-live="polite">
+        <p class="question-topic" id="question-topic"></p>
+        <h3 class="question-text" id="question-text">Loading question…</h3>
+        <div class="options" id="options" role="group" aria-labelledby="question-text"></div>
+        <div class="answer-feedback" id="answer-feedback" hidden>
+          <p class="verdict" id="answer-verdict" tabindex="-1"></p>
+          <p class="explanation" id="answer-explanation"></p>
+        </div>
+        <div class="question-error" id="question-error" hidden>
+          <p id="question-error-text"></p>
+          <button class="btn btn-secondary" type="button" id="question-retry-btn">Try again</button>
+        </div>
+      </article>
+
+      <div class="actions">
+        <button class="btn btn-primary btn-block" type="button" id="next-btn" hidden>Next question</button>
+      </div>
+    </section>
+
+    <!-- 5. Results -->
+    <section class="screen screen-results" data-screen="results" aria-labelledby="result-name" hidden>
+      <div class="result-card" id="result-card">
+        <div class="result-head">
+          <p class="result-brand">DevOps Pipeline Puzzle</p>
+          <p class="result-status">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="5 12.5 10 17 19 7.5"/></svg>
+            Completed
+          </p>
+        </div>
+
+        <p class="result-greeting">Great work,</p>
+        <h2 class="result-name" id="result-name" tabindex="-1"></h2>
+
+        <div class="result-score">
+          <p class="result-total" aria-label="Total score">
+            <span id="result-total">0</span><span class="result-total-max">/ 80</span>
+          </p>
+          <p class="result-percent" id="result-percent">0%</p>
+        </div>
+
+        <dl class="result-stats">
+          <div><dt>Pipeline</dt><dd id="result-pipeline"></dd></div>
+          <div><dt>Quiz</dt><dd id="result-quiz"></dd></div>
+          <div><dt>Pipeline score</dt><dd id="result-pipeline-score"></dd></div>
+          <div><dt>Quiz score</dt><dd id="result-quiz-score"></dd></div>
+        </dl>
+
+        <p class="achievement"><span aria-hidden="true">🏆</span> Pipeline shipped</p>
+        <p class="result-message" id="result-message"></p>
+
+        <div class="result-meta">
+          <span id="result-date"></span>
+          <span id="result-code"></span>
+        </div>
+      </div>
+
+      <p class="screenshot-note">Take a screenshot of this result for your activity record.</p>
+
+      <div class="actions actions-stack">
+        <button class="btn btn-primary btn-block" type="button" id="play-again-btn">Play again</button>
+        <button class="btn btn-secondary btn-block" type="button" id="results-leaderboard-btn">Leaderboard</button>
+        <button class="btn btn-link" type="button" id="download-card-btn">Download result card</button>
+      </div>
+    </section>
+
+    <!-- 6. Leaderboard -->
+    <section class="screen screen-leaderboard" data-screen="leaderboard" aria-labelledby="leaderboard-title" hidden>
+      <div class="screen-head">
+        <h2 class="screen-title" id="leaderboard-title" tabindex="-1">Leaderboard</h2>
+        <p class="screen-lead">Scores are from completed game sessions.</p>
+      </div>
+      <div class="panel leaderboard-panel">
+        <p class="leaderboard-status" id="leaderboard-status" role="status"></p>
+        <div class="table-wrap">
+          <table class="leaderboard-table" id="leaderboard-table" hidden>
+            <thead>
+              <tr>
+                <th scope="col">Rank</th>
+                <th scope="col">Name</th>
+                <th scope="col" class="num">Score</th>
+                <th scope="col">Completed</th>
+              </tr>
+            </thead>
+            <tbody id="leaderboard-body"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="actions actions-split">
+        <button class="btn btn-secondary" type="button" id="leaderboard-back-btn">Back</button>
+        <button class="btn btn-secondary" type="button" id="leaderboard-refresh-btn">Refresh</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="site-footer">No sign-up, no tracking. Built for learning DevOps.</footer>
+
+  <div class="toast" id="toast" role="alert" hidden>
+    <p id="toast-text"></p>
+    <button type="button" class="toast-close" id="toast-close" aria-label="Dismiss message">×</button>
+  </div>
+
+  <script src="/app.js" defer></script>
+</body>
+</html>
