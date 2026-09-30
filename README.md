@@ -139,6 +139,13 @@ Double-check on GitHub that there is **no** `.env` file and **no** `node_modules
 
 ## Deploy on Render
 
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/Pratikvatsh/devops-pipeline-puzzle)
+
+**Option A (1-Click Blueprint Deploy):**
+Click the button above or visit:
+https://render.com/deploy?repo=https://github.com/Pratikvatsh/devops-pipeline-puzzle
+
+**Option B (Manual Web Service):**
 1. Sign in at https://render.com (you can log in with GitHub).
 2. Click **New +** → **Web Service**.
 3. Connect your GitHub account and select the `devops-pipeline-puzzle` repository.
